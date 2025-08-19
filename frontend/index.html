@@ -1,174 +1,96 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Assistente de Minerais</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Identificador de Minerais</title>
   <style>
+    :root { --bg:#f5f7fb; --card:#fff; --border:#e5e7eb; --text:#111827; --muted:#6b7280; }
+    * { box-sizing: border-box; }
     body {
-      font-family: "Segoe UI", Roboto, Arial, sans-serif;
-      background: linear-gradient(to right, #e6f0f9, #f9fcff);
-      color: #333;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
+      margin:0; background:var(--bg); color:var(--text); font:16px/1.5 system-ui,Segoe UI,Roboto,Ubuntu;
+      display:grid; place-items:center; min-height:100dvh; padding:24px;
     }
-
-    header {
-      background: linear-gradient(135deg, #1f77b4, #155a8a);
-      color: #fff;
-      width: 100%;
-      padding: 25px 0;
-      text-align: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    .card {
+      width:min(720px,100%); background:var(--card); border:1px solid var(--border);
+      border-radius:16px; padding:24px; box-shadow:0 8px 24px rgba(0,0,0,.06);
     }
-
-    header h1 {
-      margin: 0;
-      font-size: 2em;
-      letter-spacing: 1px;
-    }
-
-    main {
-      margin: 40px 20px;
-      width: 100%;
-      max-width: 800px;
-      background-color: #fff;
-      padding: 35px;
-      border-radius: 12px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-    }
-
-    label {
-      font-weight: bold;
-      display: block;
-      margin-bottom: 8px;
-      color: #155a8a;
-    }
-
+    h1 { margin:0 0 12px; font-size:24px; }
+    p.helper { margin:0 0 16px; color:var(--muted) }
     textarea {
-      width: 100%;
-      padding: 12px;
-      font-size: 1em;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      resize: vertical;
-      margin-bottom: 15px;
-      transition: border 0.3s ease;
+      width:100%; height:120px; padding:12px; border:1px solid var(--border);
+      border-radius:12px; resize:vertical; outline:none;
     }
-
-    textarea:focus {
-      border-color: #1f77b4;
-      outline: none;
-      box-shadow: 0 0 5px rgba(31, 119, 180, 0.3);
-    }
-
+    .row { display:flex; gap:12px; margin-top:12px; }
     button {
-      padding: 12px 24px;
-      font-size: 1em;
-      border: none;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #1f77b4, #155a8a);
-      color: #fff;
-      cursor: pointer;
-      transition: transform 0.2s ease, background 0.3s ease;
+      appearance:none; border:1px solid var(--border); background:#111827; color:#fff;
+      padding:10px 16px; border-radius:10px; cursor:pointer; font-weight:600;
     }
-
-    button:hover {
-      transform: scale(1.05);
-      background: linear-gradient(135deg, #155a8a, #0e3d61);
+    button:disabled { opacity:.6; cursor:not-allowed; }
+    .result {
+      margin-top:16px; padding:16px; border:1px solid var(--border); border-radius:12px;
+      background:#fafafa; white-space:pre-wrap;
     }
-
-    #resposta {
-      margin-top: 25px;
-      padding: 20px;
-      background-color: #fdfdfd;
-      border-radius: 10px;
-      border: 1px solid #e0e6ed;
-      box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
-      max-height: 500px;
-      overflow-y: auto;
-      line-height: 1.6;
-    }
-
-    /* Estilo do HTML vindo da API */
-    #resposta h1, #resposta h2, #resposta h3 {
-      color: #1f77b4;
-      margin-top: 20px;
-    }
-
-    #resposta ul {
-      padding-left: 20px;
-    }
-
-    #resposta li {
-      margin-bottom: 6px;
-    }
-
-    #resposta strong {
-      color: #2c3e50;
-    }
-
-    #resposta em {
-      color: #555;
-    }
-
-    .erro {
-      color: #c0392b;
-      font-weight: bold;
-    }
+    .muted { color:var(--muted); }
+    .footer { margin-top:16px; font-size:12px; color:var(--muted); text-align:right }
   </style>
 </head>
 <body>
-  <header>
-    <h1>🪨 Assistente de Minerais</h1>
-  </header>
-
-  <main>
-    <label for="descricao">Descreva o mineral:</label>
-    <textarea id="descricao" rows="4" placeholder="Ex.: mineral verde com cristais prismáticos"></textarea>
-    <button onclick="enviarDescricao()">🔎 Identificar</button>
-    <div id="resposta"></div>
-  </main>
+  <div class="card">
+    <h1>🔎 Identificador de Minerais</h1>
+    <p class="helper">Descreva o mineral (cor, brilho, traço, fratura, clivagem, etc.).</p>
+    <textarea id="descricao" placeholder="Ex: verde escuro, brilho metálico, fratura irregular..."></textarea>
+    <div class="row">
+      <button id="btn" onclick="identificar()">Identificar</button>
+      <button onclick="limpar()">Limpar</button>
+    </div>
+    <div id="result" class="result muted">O resultado aparecerá aqui.</div>
+    <div class="footer">Dica: descrições mais detalhadas melhoram a precisão ✨</div>
+  </div>
 
   <script>
-    async function enviarDescricao() {
-      const descricao = document.getElementById('descricao').value.trim();
-      const respostaEl = document.getElementById('resposta');
+    async function identificar() {
+      const btn = document.getElementById("btn");
+      const descricao = document.getElementById("descricao").value.trim();
+      const out = document.getElementById("result");
 
       if (!descricao) {
-        respostaEl.innerHTML = "<p class='erro'>⚠️ Por favor, insira uma descrição do mineral.</p>";
+        out.textContent = "⚠️ Escreva uma descrição do mineral.";
+        out.classList.remove("muted");
         return;
       }
 
-      respostaEl.innerHTML = "<em>⏳ Carregando análise...</em>";
+      btn.disabled = true;
+      out.textContent = "⏳ Processando...";
+      out.classList.add("muted");
 
       try {
-        const response = await fetch("/identificar", {
+        // Mesma origem (o Flask serve este HTML). Rota relativa:
+        const resp = await fetch("/identificar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ descricao })
         });
 
-        const text = await response.text();
-        try {
-          const data = JSON.parse(text);
-          if (data.erro) {
-            respostaEl.innerHTML = `<p class="erro">⚠️ ${data.erro}</p>`;
-          } else {
-            // Agora a API deve retornar HTML pronto
-            respostaEl.innerHTML = data.resposta;
-          }
-        } catch (e) {
-          respostaEl.innerHTML = `<p class="erro">Erro no servidor: ${text}</p>`;
-        }
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || "Erro na API");
 
+        out.textContent = data.resposta || "(Sem conteúdo)";
+        out.classList.remove("muted");
       } catch (err) {
-        respostaEl.innerHTML = `<p class="erro">Erro ao acessar API: ${err.message}</p>`;
+        console.error(err);
+        out.textContent = "❌ Erro ao identificar o mineral.";
+        out.classList.remove("muted");
+      } finally {
+        btn.disabled = false;
       }
+    }
+
+    function limpar() {
+      document.getElementById("descricao").value = "";
+      const out = document.getElementById("result");
+      out.textContent = "O resultado aparecerá aqui.";
+      out.classList.add("muted");
     }
   </script>
 </body>
