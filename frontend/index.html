@@ -16,6 +16,7 @@
       const respostaEl = document.getElementById('resposta');
 
       try {
+        // Chamando o endpoint correto
         const response = await fetch("/identificar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
