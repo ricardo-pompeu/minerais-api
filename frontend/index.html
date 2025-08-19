@@ -94,7 +94,7 @@
       line-height: 1.6;
     }
 
-    /* Estilização do conteúdo Markdown */
+    /* Estilo do HTML vindo da API */
     #resposta h1, #resposta h2, #resposta h3 {
       color: #1f77b4;
       margin-top: 20px;
@@ -110,13 +110,6 @@
 
     #resposta strong {
       color: #2c3e50;
-    }
-
-    #resposta code {
-      background: #f4f6f8;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: "Courier New", monospace;
     }
 
     #resposta em {
@@ -141,15 +134,13 @@
     <div id="resposta"></div>
   </main>
 
-  <!-- Lib de Markdown -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
     async function enviarDescricao() {
       const descricao = document.getElementById('descricao').value.trim();
       const respostaEl = document.getElementById('resposta');
 
       if (!descricao) {
-        respostaEl.innerHTML = "<p class='erro'>Por favor, insira uma descrição do mineral.</p>";
+        respostaEl.innerHTML = "<p class='erro'>⚠️ Por favor, insira uma descrição do mineral.</p>";
         return;
       }
 
@@ -168,7 +159,8 @@
           if (data.erro) {
             respostaEl.innerHTML = `<p class="erro">⚠️ ${data.erro}</p>`;
           } else {
-            respostaEl.innerHTML = marked.parse(data.resposta);
+            // Agora a API deve retornar HTML pronto
+            respostaEl.innerHTML = data.resposta;
           }
         } catch (e) {
           respostaEl.innerHTML = `<p class="erro">Erro no servidor: ${text}</p>`;
