@@ -22,11 +22,16 @@
           body: JSON.stringify({ descricao })
         });
 
-        const data = await response.json();
-        if(data.erro) {
-          respostaEl.textContent = "Erro: " + data.erro;
-        } else {
-          respostaEl.textContent = data.resposta;
+        const text = await response.text();
+        try {
+          const data = JSON.parse(text);
+          if(data.erro) {
+            respostaEl.textContent = "Erro: " + data.erro;
+          } else {
+            respostaEl.textContent = data.resposta;
+          }
+        } catch(e) {
+          respostaEl.textContent = "Erro do servidor: " + text;
         }
 
       } catch (err) {
