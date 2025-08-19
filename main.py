@@ -8,7 +8,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Ler API key do Google
-API_KEY = os.getenv("GOOGLE_API_KEY")
+API_KEY = os.getenv("AIzaSyBwIhVi5J_NrkTvQb9suWiKCqvLxoci-Uo")
 if not API_KEY:
     raise ValueError("A variável de ambiente GOOGLE_API_KEY não está definida!")
 
