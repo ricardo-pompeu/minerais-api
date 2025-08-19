@@ -1,10 +1,14 @@
+import os
 from fastapi import FastAPI
 from pydantic import BaseModel
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-API_KEY = "SUA_CHAVE_GOOGLE"
+# Lendo a chave da variável de ambiente
+API_KEY = os.getenv("GOOGLE_API_KEY")
+if not API_KEY:
+    raise ValueError("A variável de ambiente GOOGLE_API_KEY não está definida!")
 
 SYSTEM_PROMPT = """
 Você é um assistente de IA especializado em identificação macroscópica de minerais.
@@ -15,9 +19,11 @@ Se houver incerteza, sugira testes adicionais e ressalte limites da análise.
 
 app = FastAPI()
 
+# Modelo para requisição
 class MineralRequest(BaseModel):
     descricao: str
 
+# Criando chain
 def criar_chain():
     llm = ChatGoogleGenerativeAI(
         model="gemini-1.5-flash",
@@ -34,7 +40,8 @@ chain = criar_chain()
 
 @app.post("/identificar")
 def identificar_mineral(request: MineralRequest):
-    if len(request.descricao.strip()) < 5:
+    descricao = request.descricao.strip()
+    if len(descricao) < 5:
         return {"erro": "Descrição muito curta, descreva melhor o mineral."}
-    resposta = chain.invoke({"query": request.descricao})
+    resposta = chain.invoke({"query": descricao})
     return {"resposta": resposta}
