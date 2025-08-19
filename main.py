@@ -36,17 +36,16 @@ app = FastAPI()
 # ------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ou restrinja ao seu frontend
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # ------------------------------
-# Servir frontend (index.html)
+# Servir frontend em /frontend
 # ------------------------------
-# O mount "/" permite que seu index.html seja carregado na raiz
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+app.mount("/frontend", StaticFiles(directory="frontend", html=True), name="frontend")
 
 # ------------------------------
 # Modelo de request
@@ -86,7 +85,7 @@ def identificar_mineral(request: MineralRequest):
         return {"erro": f"Erro interno: {str(e)}"}
 
 # ------------------------------
-# Endpoint raiz opcional para teste rápido
+# Endpoint teste rápido
 # ------------------------------
 @app.get("/teste")
 def teste():
