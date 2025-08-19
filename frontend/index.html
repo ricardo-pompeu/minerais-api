@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Assistente de Minerais</title>
+</head>
+<body>
+  <h1>Identificação de Minerais</h1>
+  <textarea id="descricao" placeholder="Descreva o mineral" rows="4" cols="50"></textarea>
+  <br>
+  <button onclick="enviarDescricao()">Enviar</button>
+  <pre id="resposta"></pre>
+
+  <script>
+    async function enviarDescricao() {
+      const descricao = document.getElementById('descricao').value;
+      const respostaEl = document.getElementById('resposta');
+
+      try {
+        const response = await fetch("/identificar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ descricao })
+        });
+
+        const data = await response.json();
+        if(data.erro) {
+          respostaEl.textContent = "Erro: " + data.erro;
+        } else {
+          respostaEl.textContent = data.resposta;
+        }
+
+      } catch (err) {
+        respostaEl.textContent = "Erro ao acessar API: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
