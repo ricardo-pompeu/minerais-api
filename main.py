@@ -9,10 +9,16 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_google_genai import ChatGoogleGenerativeAI
 
+# ------------------------------
+# Configuração da API Key
+# ------------------------------
 API_KEY = os.getenv("GOOGLE_API_KEY")
 if not API_KEY:
     raise ValueError("A variável de ambiente GOOGLE_API_KEY não está definida!")
 
+# ------------------------------
+# Prompt do sistema
+# ------------------------------
 SYSTEM_PROMPT = """
 Você é um assistente de IA especializado em identificação macroscópica de minerais.
 Use uma formatação para terminais linux.
@@ -20,25 +26,37 @@ Receba a descrição e retorne 2–3 minerais prováveis, explicando caracterís
 Se houver incerteza, sugira testes adicionais e ressalte limites da análise.
 """
 
+# ------------------------------
+# Inicialização do FastAPI
+# ------------------------------
 app = FastAPI()
 
+# ------------------------------
 # CORS
+# ------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # ou restrinja ao seu frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Servir frontend
+# ------------------------------
+# Servir frontend (index.html)
+# ------------------------------
+# O mount "/" permite que seu index.html seja carregado na raiz
 app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
+# ------------------------------
 # Modelo de request
+# ------------------------------
 class MineralRequest(BaseModel):
     descricao: str
 
+# ------------------------------
 # Criar chain do LangChain
+# ------------------------------
 def criar_chain():
     llm = ChatGoogleGenerativeAI(
         model="gemini-1.5-flash",
@@ -53,6 +71,9 @@ def criar_chain():
 
 chain = criar_chain()
 
+# ------------------------------
+# Endpoint POST /identificar
+# ------------------------------
 @app.post("/identificar")
 def identificar_mineral(request: MineralRequest):
     descricao = request.descricao.strip()
@@ -63,3 +84,10 @@ def identificar_mineral(request: MineralRequest):
         return {"resposta": resposta}
     except Exception as e:
         return {"erro": f"Erro interno: {str(e)}"}
+
+# ------------------------------
+# Endpoint raiz opcional para teste rápido
+# ------------------------------
+@app.get("/teste")
+def teste():
+    return {"status": "Backend funcionando!"}
