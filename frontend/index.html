@@ -6,115 +6,154 @@
   <title>Assistente de Minerais</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f4f8;
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background: linear-gradient(to right, #e6f0f9, #f9fcff);
       color: #333;
       margin: 0;
       padding: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
       min-height: 100vh;
     }
 
     header {
-      background-color: #1f77b4;
+      background: linear-gradient(135deg, #1f77b4, #155a8a);
       color: #fff;
       width: 100%;
-      padding: 20px 0;
+      padding: 25px 0;
       text-align: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2em;
+      letter-spacing: 1px;
     }
 
     main {
-      margin-top: 40px;
-      width: 90%;
-      max-width: 700px;
+      margin: 40px 20px;
+      width: 100%;
+      max-width: 800px;
       background-color: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 35px;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
     }
 
-    h1 {
-      margin-top: 0;
-      font-size: 1.8em;
-      color: #1f77b4;
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 8px;
+      color: #155a8a;
     }
 
     textarea {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       font-size: 1em;
-      border-radius: 5px;
+      border-radius: 8px;
       border: 1px solid #ccc;
       resize: vertical;
+      margin-bottom: 15px;
+      transition: border 0.3s ease;
+    }
+
+    textarea:focus {
+      border-color: #1f77b4;
+      outline: none;
+      box-shadow: 0 0 5px rgba(31, 119, 180, 0.3);
     }
 
     button {
-      margin-top: 15px;
-      padding: 10px 20px;
+      padding: 12px 24px;
       font-size: 1em;
       border: none;
-      border-radius: 5px;
-      background-color: #1f77b4;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #1f77b4, #155a8a);
       color: #fff;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: transform 0.2s ease, background 0.3s ease;
     }
 
     button:hover {
-      background-color: #155a8a;
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #155a8a, #0e3d61);
     }
 
-    pre {
-      margin-top: 20px;
-      background-color: #f4f6f8;
-      padding: 15px;
-      border-radius: 5px;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      max-height: 400px;
+    #resposta {
+      margin-top: 25px;
+      padding: 20px;
+      background-color: #fdfdfd;
+      border-radius: 10px;
+      border: 1px solid #e0e6ed;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
+      max-height: 500px;
       overflow-y: auto;
-      font-family: 'Courier New', monospace;
+      line-height: 1.6;
+    }
+
+    /* Estilização do conteúdo Markdown */
+    #resposta h1, #resposta h2, #resposta h3 {
+      color: #1f77b4;
+      margin-top: 20px;
+    }
+
+    #resposta ul {
+      padding-left: 20px;
+    }
+
+    #resposta li {
+      margin-bottom: 6px;
+    }
+
+    #resposta strong {
+      color: #2c3e50;
+    }
+
+    #resposta code {
+      background: #f4f6f8;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: "Courier New", monospace;
+    }
+
+    #resposta em {
+      color: #555;
     }
 
     .erro {
       color: #c0392b;
       font-weight: bold;
     }
-
-    .resposta {
-      color: #2c3e50;
-    }
   </style>
 </head>
 <body>
   <header>
-    <h1>Assistente de Minerais</h1>
+    <h1>🪨 Assistente de Minerais</h1>
   </header>
 
   <main>
-    <label for="descricao"><strong>Descreva o mineral:</strong></label>
+    <label for="descricao">Descreva o mineral:</label>
     <textarea id="descricao" rows="4" placeholder="Ex.: mineral verde com cristais prismáticos"></textarea>
-    <button onclick="enviarDescricao()">Identificar</button>
-    <pre id="resposta"></pre>
+    <button onclick="enviarDescricao()">🔎 Identificar</button>
+    <div id="resposta"></div>
   </main>
 
+  <!-- Lib de Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
     async function enviarDescricao() {
       const descricao = document.getElementById('descricao').value.trim();
       const respostaEl = document.getElementById('resposta');
 
       if (!descricao) {
-        respostaEl.textContent = "Por favor, insira uma descrição do mineral.";
-        respostaEl.className = "erro";
+        respostaEl.innerHTML = "<p class='erro'>Por favor, insira uma descrição do mineral.</p>";
         return;
       }
 
-      respostaEl.textContent = "Carregando...";
-      respostaEl.className = "";
+      respostaEl.innerHTML = "<em>⏳ Carregando análise...</em>";
 
       try {
         const response = await fetch("/identificar", {
@@ -126,21 +165,17 @@
         const text = await response.text();
         try {
           const data = JSON.parse(text);
-          if(data.erro) {
-            respostaEl.textContent = data.erro;
-            respostaEl.className = "erro";
+          if (data.erro) {
+            respostaEl.innerHTML = `<p class="erro">⚠️ ${data.erro}</p>`;
           } else {
-            respostaEl.textContent = data.resposta;
-            respostaEl.className = "resposta";
+            respostaEl.innerHTML = marked.parse(data.resposta);
           }
-        } catch(e) {
-          respostaEl.textContent = "Erro no servidor: " + text;
-          respostaEl.className = "erro";
+        } catch (e) {
+          respostaEl.innerHTML = `<p class="erro">Erro no servidor: ${text}</p>`;
         }
 
       } catch (err) {
-        respostaEl.textContent = "Erro ao acessar API: " + err.message;
-        respostaEl.className = "erro";
+        respostaEl.innerHTML = `<p class="erro">Erro ao acessar API: ${err.message}</p>`;
       }
     }
   </script>
