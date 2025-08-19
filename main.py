@@ -1,61 +1,37 @@
-import os
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from fastapi.middleware.cors import CORSMiddleware
-
-# Import do LangChain
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_google_genai import ChatGoogleGenerativeAI
+import json
 
-# ------------------------------
-# Configuração da API Key
-# ------------------------------
-API_KEY = os.getenv("GOOGLE_API_KEY")
-if not API_KEY:
-    raise ValueError("A variável de ambiente GOOGLE_API_KEY não está definida!")
+API_KEY = "SUA_CHAVE_GOOGLE"
 
-# ------------------------------
-# Prompt do sistema
-# ------------------------------
 SYSTEM_PROMPT = """
 Você é um assistente de IA especializado em identificação macroscópica de minerais.
-Use uma formatação para terminais linux.
-Receba a descrição e retorne 2–3 minerais prováveis, explicando características diagnósticas e como diferenciá-los.
-Se houver incerteza, sugira testes adicionais e ressalte limites da análise.
+
+Retorne **sempre em JSON**, no seguinte formato:
+
+{
+  "minerais": [
+    {
+      "nome": "Nome do mineral",
+      "caracteristicas": ["item 1", "item 2", "item 3"],
+      "diferenciacao": "Como diferenciar esse mineral"
+    }
+  ],
+  "testes": ["teste 1", "teste 2"],
+  "limites": ["limite 1", "limite 2"]
+}
+
+⚠️ Não use markdown, não use código, apenas JSON válido.
 """
 
-# ------------------------------
-# Inicialização do FastAPI
-# ------------------------------
 app = FastAPI()
 
-# ------------------------------
-# CORS
-# ------------------------------
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# ------------------------------
-# Servir frontend em /frontend
-# ------------------------------
-app.mount("/frontend", StaticFiles(directory="frontend", html=True), name="frontend")
-
-# ------------------------------
-# Modelo de request
-# ------------------------------
 class MineralRequest(BaseModel):
     descricao: str
 
-# ------------------------------
-# Criar chain do LangChain
-# ------------------------------
 def criar_chain():
     llm = ChatGoogleGenerativeAI(
         model="gemini-1.5-flash",
@@ -70,23 +46,46 @@ def criar_chain():
 
 chain = criar_chain()
 
-# ------------------------------
-# Endpoint POST /identificar
-# ------------------------------
+def formatar_html(json_str: str) -> str:
+    """Converte o JSON gerado pelo modelo em HTML bonito"""
+    try:
+        dados = json.loads(json_str)
+    except:
+        return f"<p class='erro'>Erro ao interpretar resposta da IA: {json_str}</p>"
+
+    html = "<div class='analise'>"
+    html += "<h1>🔎 Possibilidades de Identificação</h1>"
+
+    # Minerais
+    for idx, mineral in enumerate(dados.get("minerais", []), start=1):
+        html += f"<h2>🟢 Mineral {idx} — {mineral['nome']}</h2>"
+        html += "<ul>"
+        for c in mineral.get("caracteristicas", []):
+            html += f"<li>{c}</li>"
+        html += "</ul>"
+        html += f"<p><strong>Como diferenciar:</strong> {mineral.get('diferenciacao', '')}</p>"
+
+    # Testes adicionais
+    if "testes" in dados:
+        html += "<h2>🧪 Testes adicionais recomendados</h2><ul>"
+        for t in dados["testes"]:
+            html += f"<li>{t}</li>"
+        html += "</ul>"
+
+    # Limites
+    if "limites" in dados:
+        html += "<h2>⚠️ Limites da análise</h2><ul>"
+        for l in dados["limites"]:
+            html += f"<li>{l}</li>"
+        html += "</ul>"
+
+    html += "</div>"
+    return html
+
 @app.post("/identificar")
 def identificar_mineral(request: MineralRequest):
-    descricao = request.descricao.strip()
-    if len(descricao) < 5:
+    if len(request.descricao.strip()) < 5:
         return {"erro": "Descrição muito curta, descreva melhor o mineral."}
-    try:
-        resposta = chain.invoke({"query": descricao})
-        return {"resposta": resposta}
-    except Exception as e:
-        return {"erro": f"Erro interno: {str(e)}"}
-
-# ------------------------------
-# Endpoint teste rápido
-# ------------------------------
-@app.get("/teste")
-def teste():
-    return {"status": "Backend funcionando!"}
+    resposta_json = chain.invoke({"query": request.descricao})
+    resposta_html = formatar_html(resposta_json)
+    return {"resposta": resposta_html}
