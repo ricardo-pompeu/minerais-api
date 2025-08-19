@@ -1,11 +1,13 @@
 import os
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-# Lendo a chave da variável de ambiente
+# Ler API key do Google
 API_KEY = os.getenv("GOOGLE_API_KEY")
 if not API_KEY:
     raise ValueError("A variável de ambiente GOOGLE_API_KEY não está definida!")
@@ -19,11 +21,22 @@ Se houver incerteza, sugira testes adicionais e ressalte limites da análise.
 
 app = FastAPI()
 
-# Modelo para requisição
+# Habilitar CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Para testes, depois restrinja ao seu domínio
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Servir arquivos estáticos do frontend
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+
+# Modelo para requisições
 class MineralRequest(BaseModel):
     descricao: str
 
-# Criando chain
 def criar_chain():
     llm = ChatGoogleGenerativeAI(
         model="gemini-1.5-flash",
