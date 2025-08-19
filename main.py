@@ -3,12 +3,13 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+
+# Import do LangChain
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-# Ler API key do Google
-API_KEY = os.getenv("AIzaSyBwIhVi5J_NrkTvQb9suWiKCqvLxoci-Uo")
+API_KEY = os.getenv("GOOGLE_API_KEY")
 if not API_KEY:
     raise ValueError("A variável de ambiente GOOGLE_API_KEY não está definida!")
 
@@ -21,22 +22,23 @@ Se houver incerteza, sugira testes adicionais e ressalte limites da análise.
 
 app = FastAPI()
 
-# Habilitar CORS
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Para testes, depois restrinja ao seu domínio
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Servir arquivos estáticos do frontend
+# Servir frontend
 app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
-# Modelo para requisições
+# Modelo de request
 class MineralRequest(BaseModel):
     descricao: str
 
+# Criar chain do LangChain
 def criar_chain():
     llm = ChatGoogleGenerativeAI(
         model="gemini-1.5-flash",
@@ -56,5 +58,8 @@ def identificar_mineral(request: MineralRequest):
     descricao = request.descricao.strip()
     if len(descricao) < 5:
         return {"erro": "Descrição muito curta, descreva melhor o mineral."}
-    resposta = chain.invoke({"query": descricao})
-    return {"resposta": resposta}
+    try:
+        resposta = chain.invoke({"query": descricao})
+        return {"resposta": resposta}
+    except Exception as e:
+        return {"erro": f"Erro interno: {str(e)}"}
