@@ -1,22 +1,122 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Assistente de Minerais</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f4f8;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+    }
+
+    header {
+      background-color: #1f77b4;
+      color: #fff;
+      width: 100%;
+      padding: 20px 0;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    main {
+      margin-top: 40px;
+      width: 90%;
+      max-width: 700px;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 1.8em;
+      color: #1f77b4;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 1em;
+      border: none;
+      border-radius: 5px;
+      background-color: #1f77b4;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #155a8a;
+    }
+
+    pre {
+      margin-top: 20px;
+      background-color: #f4f6f8;
+      padding: 15px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+    }
+
+    .erro {
+      color: #c0392b;
+      font-weight: bold;
+    }
+
+    .resposta {
+      color: #2c3e50;
+    }
+  </style>
 </head>
 <body>
-  <h1>Identificação de Minerais</h1>
-  <textarea id="descricao" placeholder="Descreva o mineral" rows="4" cols="50"></textarea>
-  <br>
-  <button onclick="enviarDescricao()">Enviar</button>
-  <pre id="resposta"></pre>
+  <header>
+    <h1>Assistente de Minerais</h1>
+  </header>
+
+  <main>
+    <label for="descricao"><strong>Descreva o mineral:</strong></label>
+    <textarea id="descricao" rows="4" placeholder="Ex.: mineral verde com cristais prismáticos"></textarea>
+    <button onclick="enviarDescricao()">Identificar</button>
+    <pre id="resposta"></pre>
+  </main>
 
   <script>
     async function enviarDescricao() {
-      const descricao = document.getElementById('descricao').value;
+      const descricao = document.getElementById('descricao').value.trim();
       const respostaEl = document.getElementById('resposta');
 
+      if (!descricao) {
+        respostaEl.textContent = "Por favor, insira uma descrição do mineral.";
+        respostaEl.className = "erro";
+        return;
+      }
+
+      respostaEl.textContent = "Carregando...";
+      respostaEl.className = "";
+
       try {
-        // Chamando o endpoint correto
         const response = await fetch("/identificar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -27,16 +127,20 @@
         try {
           const data = JSON.parse(text);
           if(data.erro) {
-            respostaEl.textContent = "Erro: " + data.erro;
+            respostaEl.textContent = data.erro;
+            respostaEl.className = "erro";
           } else {
             respostaEl.textContent = data.resposta;
+            respostaEl.className = "resposta";
           }
         } catch(e) {
-          respostaEl.textContent = "Erro do servidor: " + text;
+          respostaEl.textContent = "Erro no servidor: " + text;
+          respostaEl.className = "erro";
         }
 
       } catch (err) {
         respostaEl.textContent = "Erro ao acessar API: " + err.message;
+        respostaEl.className = "erro";
       }
     }
   </script>
